@@ -63,3 +63,10 @@ export interface PushSubscriptionRecord {
   auth: string;
   created_at: string;
 }
+
+export interface DayLabel {
+  id: string;
+  household_id: string;
+  day_of_week: string;
+  label: string;
+}

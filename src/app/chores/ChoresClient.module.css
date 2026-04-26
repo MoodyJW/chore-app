@@ -1,0 +1,227 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: var(--space-4);
+  padding-bottom: calc(80px + var(--space-4));
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Page header */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) 0 var(--space-2);
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* Confirm dialog */
+.confirm {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  border-color: rgba(124, 106, 247, 0.4) !important;
+}
+
+.confirmNote {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.confirmBtns {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Day section */
+.daySection {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  border-bottom: 1.5px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+
+.sectionTitles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.dayName {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.labelInput {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px dashed var(--glass-border);
+  padding: 2px 0;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition-fast);
+}
+
+.labelInput::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.labelInput:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+/* Chore list */
+.choreList {
+  list-style: none;
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--border-radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.choreRow:hover {
+  background: var(--glass-bg-hover);
+}
+
+.choreIcon {
+  color: var(--text-muted);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.choreText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.choreName {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.choreDesc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.choreActions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.choreRow:hover .choreActions {
+  opacity: 1;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: var(--space-1);
+  border-radius: var(--border-radius-sm);
+  transition: background var(--transition-fast);
+  line-height: 1;
+}
+
+.iconBtn:hover {
+  background: var(--glass-bg-hover);
+}
+
+.deleteBtn:hover {
+  background: rgba(247, 106, 138, 0.15);
+}
+
+/* Empty day */
+.emptyDay {
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Inline form (add/edit) */
+.inlineForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  border-top: 1.5px solid var(--glass-border);
+  animation: fadeIn 0.2s ease;
+}
+
+.inlineInput {
+  font-size: var(--font-size-sm) !important;
+  padding: var(--space-2) var(--space-3) !important;
+}
+
+.inlineActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.inlineError {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent);
+}
+
+.bottomPad {
+  height: var(--space-4);
+}

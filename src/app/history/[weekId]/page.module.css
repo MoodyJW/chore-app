@@ -1,0 +1,200 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: var(--space-4);
+  padding-bottom: calc(80px + var(--space-4));
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pageHeader {
+  padding: var(--space-2) 0 var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.backLink {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  transition: opacity var(--transition-fast);
+}
+
+.backLink:hover { opacity: 0.75; }
+
+.weekRange {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.summaryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success);
+  background: rgba(90, 247, 160, 0.12);
+  border: 1.5px solid rgba(90, 247, 160, 0.25);
+  border-radius: 99px;
+  padding: var(--space-1) var(--space-4);
+}
+
+/* Day sections */
+.daySection {
+  overflow: hidden;
+}
+
+.allDone {
+  border-color: rgba(90, 247, 160, 0.45) !important;
+  box-shadow: 0 0 0 1px rgba(90, 247, 160, 0.25), var(--glass-shadow) !important;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5) var(--space-3);
+  gap: var(--space-3);
+}
+
+.dayName {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.daySubtitle {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  margin-top: 2px;
+}
+
+.progress {
+  flex-shrink: 0;
+}
+
+.progressText {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+  padding: 2px var(--space-3);
+  border-radius: 99px;
+  border: 1.5px solid var(--glass-border);
+}
+
+.doneBadge {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+/* Chore list (read-only) */
+.choreList {
+  list-style: none;
+  padding: 0 var(--space-3) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.choreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--border-radius-sm);
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  background: transparent;
+}
+
+.choreDone .checkbox {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.choreName {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.choreDone .choreName {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Daily chore grid */
+.dailyGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-2);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.dailyDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-2);
+  border-radius: var(--border-radius-sm);
+  background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border);
+}
+
+.dailyDayDone {
+  background: rgba(90, 247, 160, 0.12);
+  border-color: rgba(90, 247, 160, 0.35);
+}
+
+.dailyDayName {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dailyDayCount {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.bottomPad { height: var(--space-4); }

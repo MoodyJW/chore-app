@@ -1,0 +1,220 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  padding: var(--space-4);
+  padding-bottom: calc(80px + var(--space-4)); /* room for bottom nav */
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Week header */
+.weekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) 0 var(--space-2);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.weekLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.weekRange {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Day section card */
+.daySection {
+  overflow: hidden;
+  transition: all var(--transition-base);
+}
+
+.today {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 1px var(--color-primary), var(--glass-shadow) !important;
+}
+
+.past {
+  opacity: 0.65;
+}
+
+.allDone {
+  border-color: rgba(90, 247, 160, 0.5) !important;
+  box-shadow: 0 0 0 1px rgba(90, 247, 160, 0.3), var(--glass-shadow) !important;
+}
+
+/* Day section header (the clickable toggle) */
+.dayHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: none;
+  border: none;
+  cursor: pointer;
+  gap: var(--space-3);
+  text-align: left;
+  font-family: var(--font-family);
+}
+
+.dayHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dayName {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.today .dayName {
+  color: var(--color-primary);
+}
+
+.dayDate {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.dayHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.progress {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--glass-bg);
+  padding: 2px var(--space-3);
+  border-radius: 99px;
+  border: 1.5px solid var(--glass-border);
+}
+
+.allDoneBadge {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.chevron {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+/* Chore list */
+.choreList {
+  padding: 0 var(--space-3) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  animation: fadeIn 0.2s ease;
+}
+
+/* Individual chore row */
+.choreItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--border-radius-sm);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: var(--font-family);
+  transition: background var(--transition-fast);
+}
+
+.choreItem:hover {
+  background: var(--glass-bg-hover);
+}
+
+.choreItemDone .choreName {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Checkbox circle */
+.checkbox {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 7px;
+  border: 2px solid var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  transition: all var(--transition-fast);
+  background: transparent;
+}
+
+.checkboxDone {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  animation: scaleIn 150ms ease;
+}
+
+.choreName {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.choreDesc {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-left: auto;
+  max-width: 120px;
+  text-align: right;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: var(--space-12) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+
+.emptyState p:first-child {
+  font-size: 2.5rem;
+}
+
+.bottomPad {
+  height: var(--space-4);
+}
