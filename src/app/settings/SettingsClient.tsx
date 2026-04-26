@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { NavBar } from "@/components/NavBar";
-import { updateHousehold } from "./actions";
 import { signOut } from "@/app/login/actions";
+import { PushToggle } from "./PushToggle";
 import type { Household, Streak } from "@/lib/types";
 import styles from "./SettingsClient.module.css";
 
@@ -147,6 +147,12 @@ export function SettingsClient({ household, streak, email }: Props) {
               {pending ? <span className="spinner" /> : saved ? "✓ Saved!" : "Save Settings"}
             </button>
           </form>
+        </div>
+
+        {/* Push Notifications */}
+        <div className={`glass ${styles.section}`}>
+          <h2 className={styles.sectionTitle}>Notifications</h2>
+          <PushToggle />
         </div>
 
         {/* Account info */}
