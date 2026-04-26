@@ -24,29 +24,10 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  // 1. Fetch all households to determine their local time
-  const { data: households } = await supabase.from("households").select("id, timezone");
-  
-  // 2. Filter households where the current hour is 19 (7 PM)
-  const targetHouseholdIds = households?.filter(h => {
-    try {
-      const tz = h.timezone || "America/Los_Angeles";
-      const localTime = new Date(now.toLocaleString("en-US", { timeZone: tz }));
-      return localTime.getHours() === 19;
-    } catch {
-      return false;
-    }
-  }).map(h => h.id) || [];
-
-  if (targetHouseholdIds.length === 0) {
-    return NextResponse.json({ message: "No households at 7 PM right now" });
-  }
-
-  // 3. Fetch push subscriptions for those households
+  // 1. Fetch push subscriptions
   const { data: subs, error: subsError } = await supabase
     .from("push_subscriptions")
-    .select("*")
-    .in("household_id", targetHouseholdIds);
+    .select("*");
 
   if (subsError || !subs?.length) {
     return NextResponse.json({ message: "No subscriptions to notify at this time" });
