@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { NavBar } from "@/components/NavBar";
+import { updateHousehold } from "./actions";
 import { signOut } from "@/app/login/actions";
 import { PushToggle } from "./PushToggle";
 import type { Household, Streak } from "@/lib/types";

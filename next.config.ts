@@ -14,6 +14,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {}, // Silence the webpack warning during build
 };
 
 export default withPWA(nextConfig);

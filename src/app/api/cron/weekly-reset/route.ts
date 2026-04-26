@@ -44,10 +44,10 @@ export async function GET(request: Request) {
     week_end: weekEnd,
   }));
 
-  const { error: insertError, count } = await supabase
+  const { error: insertError, data: createdWeeks } = await supabase
     .from("weeks")
     .upsert(rows, { onConflict: "household_id,week_start", ignoreDuplicates: true })
-    .select("id", { count: "exact", head: true });
+    .select("id");
 
   if (insertError) {
     console.error("Cron: failed to create weeks", insertError);
@@ -59,6 +59,6 @@ export async function GET(request: Request) {
     message: "Weekly reset complete",
     week: `${weekStart} → ${weekEnd}`,
     households: households.length,
-    newWeeksCreated: count ?? 0,
+    newWeeksCreated: createdWeeks?.length ?? 0,
   });
 }
