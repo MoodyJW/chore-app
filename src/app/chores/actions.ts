@@ -81,8 +81,10 @@ export async function loadDefaultChores() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Insert chores — plain insert so it works without a unique constraint.
-  // The confirm dialog prevents accidental double-loads.
+  // Delete all existing chores for this household to prevent duplicates
+  await supabase.from("chores").delete().eq("household_id", user.id);
+
+  // Insert default chores
   const choresWithHousehold = DEFAULT_CHORES.map((c) => ({
     ...c,
     household_id: user.id,
