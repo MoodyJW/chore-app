@@ -20,6 +20,7 @@
   /* Glass surfaces */
   --glass-bg:             rgba(255, 255, 255, 0.45);
   --glass-bg-hover:       rgba(255, 255, 255, 0.60);
+  --nav-bg:               rgba(255, 255, 255, 0.90);
   --glass-border:         rgba(255, 255, 255, 0.70);
   --glass-shadow:         0 8px 32px rgba(124, 106, 247, 0.12);
   --glass-blur:           blur(16px);
@@ -83,6 +84,7 @@
 
   --glass-bg:             rgba(20, 16, 40, 0.55);
   --glass-bg-hover:       rgba(30, 24, 56, 0.70);
+  --nav-bg:               rgba(17, 14, 33, 0.95);
   --glass-border:         rgba(124, 106, 247, 0.25);
   --glass-shadow:         0 8px 32px rgba(0, 0, 0, 0.40);
 

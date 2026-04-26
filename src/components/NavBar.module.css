@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-5);
-  background: var(--glass-bg);
+  background: var(--nav-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1.5px solid var(--glass-border);
@@ -39,7 +39,7 @@
   z-index: var(--z-nav);
   display: flex;
   align-items: stretch;
-  background: var(--glass-bg);
+  background: var(--nav-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1.5px solid var(--glass-border);
