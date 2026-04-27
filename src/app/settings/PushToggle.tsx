@@ -32,8 +32,7 @@ export function PushToggle() {
 
   async function checkSubscription() {
     try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) return; // No SW registered (likely in dev mode)
+      if (process.env.NODE_ENV === "development") return;
       
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -47,9 +46,8 @@ export function PushToggle() {
     setError(null);
     setLoading(true);
     try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) {
-        setError("Service worker is not registered. (Push is disabled in development)");
+      if (process.env.NODE_ENV === "development") {
+        setError("Push notifications are disabled in development mode.");
         return;
       }
 
@@ -84,8 +82,7 @@ export function PushToggle() {
     setError(null);
     setLoading(true);
     try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (!reg) {
+      if (process.env.NODE_ENV === "development") {
         setIsSubscribed(false);
         return;
       }
