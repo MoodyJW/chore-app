@@ -1,7 +1,7 @@
 {
-  "name": "ChoreApp",
-  "short_name": "Chores",
-  "description": "Household chore tracking for the whole family",
+  "name": "TaskApp",
+  "short_name": "Tasks",
+  "description": "Household task tracking for the whole family",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f0f1a",
@@ -57,6 +57,9 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["productivity", "lifestyle"],
+  "categories": [
+    "productivity",
+    "lifestyle"
+  ],
   "screenshots": []
 }
