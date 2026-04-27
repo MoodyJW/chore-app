@@ -32,8 +32,7 @@ export function PushToggle() {
 
   async function checkSubscription() {
     try {
-      if (process.env.NODE_ENV === "development") return;
-      
+      await navigator.serviceWorker.register('/sw.js');
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
@@ -46,17 +45,14 @@ export function PushToggle() {
     setError(null);
     setLoading(true);
     try {
-      if (process.env.NODE_ENV === "development") {
-        setError("Push notifications are disabled in development mode.");
-        return;
-      }
-
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setError("Notification permission denied");
         return;
       }
 
+      // Ensure the service worker is registered before we wait for it to be ready
+      await navigator.serviceWorker.register('/sw.js');
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -82,11 +78,7 @@ export function PushToggle() {
     setError(null);
     setLoading(true);
     try {
-      if (process.env.NODE_ENV === "development") {
-        setIsSubscribed(false);
-        return;
-      }
-
+      await navigator.serviceWorker.register('/sw.js');
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {

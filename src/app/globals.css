@@ -420,6 +420,7 @@ body {
    LOADING SPINNER
    ========================================================= */
 .spinner {
+  display: inline-block;
   width: 20px;
   height: 20px;
   border: 2px solid var(--glass-border);
