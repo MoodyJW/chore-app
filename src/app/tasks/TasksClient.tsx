@@ -13,24 +13,24 @@ import { CSS } from "@dnd-kit/utilities";
 import { NavBar } from "@/components/NavBar";
 import { DAY_NAMES, DAY_FULL } from "@/lib/week-utils";
 import {
-  addChore, deleteChore, updateChore,
-  upsertDayLabel, loadDefaultChores, reorderChores,
+  addTask, deleteTask, updateTask,
+  upsertDayLabel, loadDefaultTasks, reorderTasks,
 } from "./actions";
-import type { Chore } from "@/lib/types";
-import styles from "./ChoresClient.module.css";
+import type { Task } from "@/lib/types";
+import styles from "./TasksClient.module.css";
 
 interface DayLabel { day_of_week: string; label: string; }
 
 interface Props {
-  chores: Chore[];
+  tasks: Task[];
   dayLabels: DayLabel[];
   householdName: string;
 }
 
 const ALL_DAYS = ["daily", ...DAY_NAMES] as const;
 
-export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, householdName }: Props) {
-  const [chores, setChores] = useState<Chore[]>(initialChores);
+export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, householdName }: Props) {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [labels, setLabels] = useState<Map<string, string>>(
     new Map(initialLabels.map((l) => [l.day_of_week, l.label]))
   );
@@ -41,11 +41,11 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
   const [, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const choresByDay = (day: string) => chores.filter((c) => c.recurrence === day);
+  const tasksByDay = (day: string) => tasks.filter((c) => c.recurrence === day);
 
   function handleLoadDefaults() {
     startDefaultsTransition(async () => {
-      await loadDefaultChores();
+      await loadDefaultTasks();
       // Refresh by reloading page data
       window.location.reload();
     });
@@ -60,13 +60,13 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
     });
   }
 
-  function handleDelete(choreId: string) {
-    setChores((prev) => prev.filter((c) => c.id !== choreId));
-    startTransition(async () => { await deleteChore(choreId); });
+  function handleDelete(taskId: string) {
+    setTasks((prev) => prev.filter((c) => c.id !== taskId));
+    startTransition(async () => { await deleteTask(taskId); });
   }
 
   function handleReorder(day: string, orderedIds: string[]) {
-    setChores((prev) => {
+    setTasks((prev) => {
       const others = prev.filter((c) => c.recurrence !== day);
       const dayMap = new Map(
         prev.filter((c) => c.recurrence === day).map((c) => [c.id, c])
@@ -77,7 +77,7 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
       }));
       return [...others, ...reordered];
     });
-    startTransition(async () => { await reorderChores(day, orderedIds); });
+    startTransition(async () => { await reorderTasks(day, orderedIds); });
   }
 
   function toggleReorderMode() {
@@ -95,11 +95,11 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
         {/* Page header */}
         <div className={styles.pageHeader}>
           <div>
-            <h1 className={styles.pageTitle}>Manage Chores</h1>
+            <h1 className={styles.pageTitle}>Manage Tasks</h1>
             <p className={styles.pageSubtitle}>
               {reorderMode
-                ? "Drag chores to reorder within each day."
-                : "Add, edit, or remove chores for each day."}
+                ? "Drag tasks to reorder within each day."
+                : "Add, edit, or remove tasks for each day."}
             </p>
           </div>
           <div className={styles.headerActions}>
@@ -126,8 +126,8 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
         {/* Confirm dialog */}
         {showConfirm && !reorderMode && (
           <div className={`glass ${styles.confirm}`}>
-            <p>Load a default set of chores organized by room?</p>
-            <p className={styles.confirmNote}>Existing chores will not be removed.</p>
+            <p>Load a default set of tasks organized by room?</p>
+            <p className={styles.confirmNote}>Existing tasks will not be removed.</p>
             <div className={styles.confirmBtns}>
               <button className="btn btn-primary btn-sm" onClick={handleLoadDefaults}>
                 Yes, load defaults
@@ -141,7 +141,7 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
 
         {/* Day sections */}
         {ALL_DAYS.map((day, i) => {
-          const dayChores = choresByDay(day);
+          const dayTasks = tasksByDay(day);
           const label = labels.get(day) ?? "";
           const displayName = day === "daily" ? "Daily" : DAY_FULL[i - 1];
 
@@ -151,21 +151,21 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
               day={day}
               displayName={displayName}
               label={label}
-              chores={dayChores}
+              tasks={dayTasks}
               isAdding={addingTo === day}
               editingId={editingId}
               reorderMode={reorderMode}
               onLabelBlur={(val) => handleLabelBlur(day, val)}
               onAddStart={() => { setAddingTo(day); setEditingId(null); }}
               onAddCancel={() => setAddingTo(null)}
-              onAdded={(chore) => {
-                setChores((prev) => [...prev, chore]);
+              onAdded={(task) => {
+                setTasks((prev) => [...prev, task]);
                 setAddingTo(null);
               }}
               onEditStart={(id) => { setEditingId(id); setAddingTo(null); }}
               onEditCancel={() => setEditingId(null)}
               onEdited={(updated) => {
-                setChores((prev) => prev.map((c) => c.id === updated.id ? updated : c));
+                setTasks((prev) => prev.map((c) => c.id === updated.id ? updated : c));
                 setEditingId(null);
               }}
               onDelete={handleDelete}
@@ -185,23 +185,23 @@ interface DaySectionProps {
   day: string;
   displayName: string;
   label: string;
-  chores: Chore[];
+  tasks: Task[];
   isAdding: boolean;
   editingId: string | null;
   reorderMode: boolean;
   onLabelBlur: (val: string) => void;
   onAddStart: () => void;
   onAddCancel: () => void;
-  onAdded: (chore: Chore) => void;
+  onAdded: (task: Task) => void;
   onEditStart: (id: string) => void;
   onEditCancel: () => void;
-  onEdited: (chore: Chore) => void;
+  onEdited: (task: Task) => void;
   onDelete: (id: string) => void;
   onReorder: (day: string, orderedIds: string[]) => void;
 }
 
 function DaySection({
-  day, displayName, label, chores, isAdding, editingId, reorderMode,
+  day, displayName, label, tasks, isAdding, editingId, reorderMode,
   onLabelBlur, onAddStart, onAddCancel, onAdded,
   onEditStart, onEditCancel, onEdited, onDelete, onReorder,
 }: DaySectionProps) {
@@ -216,28 +216,28 @@ function DaySection({
   function handleDragEnd(e: DragEndEvent) {
     const { active, over } = e;
     if (!over || active.id === over.id) return;
-    const oldIdx = chores.findIndex((c) => c.id === active.id);
-    const newIdx = chores.findIndex((c) => c.id === over.id);
+    const oldIdx = tasks.findIndex((c) => c.id === active.id);
+    const newIdx = tasks.findIndex((c) => c.id === over.id);
     if (oldIdx < 0 || newIdx < 0) return;
-    const next = arrayMove(chores, oldIdx, newIdx);
+    const next = arrayMove(tasks, oldIdx, newIdx);
     onReorder(day, next.map((c) => c.id));
   }
 
-  const renderedList = chores.length > 0 && (
-    <ul className={styles.choreList}>
-      {chores.map((chore) =>
-        editingId === chore.id && !reorderMode ? (
-          <li key={chore.id} className={styles.choreRow}>
-            <EditChoreForm
-              chore={chore}
+  const renderedList = tasks.length > 0 && (
+    <ul className={styles.taskList}>
+      {tasks.map((task) =>
+        editingId === task.id && !reorderMode ? (
+          <li key={task.id} className={styles.taskRow}>
+            <EditTaskForm
+              task={task}
               onCancel={onEditCancel}
               onSaved={onEdited}
             />
           </li>
         ) : (
-          <SortableChoreRow
-            key={chore.id}
-            chore={chore}
+          <SortableTaskRow
+            key={task.id}
+            task={task}
             reorderMode={reorderMode}
             onEditStart={onEditStart}
             onDelete={onDelete}
@@ -269,15 +269,15 @@ function DaySection({
             className="btn btn-ghost btn-sm"
             onClick={onAddStart}
             id={`btn-add-${day}`}
-            aria-label={`Add chore to ${displayName}`}
+            aria-label={`Add task to ${displayName}`}
           >
             + Add
           </button>
         )}
       </div>
 
-      {/* Chore list */}
-      {chores.length > 0 && (
+      {/* Task list */}
+      {tasks.length > 0 && (
         reorderMode ? (
           <DndContext
             sensors={sensors}
@@ -285,7 +285,7 @@ function DaySection({
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={chores.map((c) => c.id)}
+              items={tasks.map((c) => c.id)}
               strategy={verticalListSortingStrategy}
             >
               {renderedList}
@@ -296,33 +296,33 @@ function DaySection({
         )
       )}
 
-      {/* Add chore inline form */}
+      {/* Add task inline form */}
       {isAdding && !reorderMode && (
-        <AddChoreForm
+        <AddTaskForm
           day={day}
           onCancel={onAddCancel}
           onAdded={onAdded}
         />
       )}
 
-      {chores.length === 0 && !isAdding && (
-        <p className={styles.emptyDay}>No chores yet for this day.</p>
+      {tasks.length === 0 && !isAdding && (
+        <p className={styles.emptyDay}>No tasks yet for this day.</p>
       )}
     </div>
   );
 }
 
-/* ── Sortable Chore Row ────────────────────────────────────── */
-function SortableChoreRow({
-  chore, reorderMode, onEditStart, onDelete,
+/* ── Sortable Task Row ────────────────────────────────────── */
+function SortableTaskRow({
+  task, reorderMode, onEditStart, onDelete,
 }: {
-  chore: Chore;
+  task: Task;
   reorderMode: boolean;
   onEditStart: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: chore.id, disabled: !reorderMode });
+    useSortable({ id: task.id, disabled: !reorderMode });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -333,7 +333,7 @@ function SortableChoreRow({
     <li
       ref={setNodeRef}
       style={style}
-      className={`${styles.choreRow} ${isDragging ? styles.dragging : ""}`}
+      className={`${styles.taskRow} ${isDragging ? styles.dragging : ""}`}
     >
       {reorderMode ? (
         <button
@@ -341,30 +341,30 @@ function SortableChoreRow({
           className={styles.gripBtn}
           {...attributes}
           {...listeners}
-          aria-label={`Reorder ${chore.name}`}
+          aria-label={`Reorder ${task.name}`}
           title="Drag to reorder"
         >⋮⋮</button>
       ) : (
-        <span className={styles.choreIcon}>☐</span>
+        <span className={styles.taskIcon}>☐</span>
       )}
-      <div className={styles.choreText}>
-        <span className={styles.choreName}>{chore.name}</span>
-        {chore.description && (
-          <span className={styles.choreDesc}>{chore.description}</span>
+      <div className={styles.taskText}>
+        <span className={styles.taskName}>{task.name}</span>
+        {task.description && (
+          <span className={styles.taskDesc}>{task.description}</span>
         )}
       </div>
       {!reorderMode && (
-        <div className={styles.choreActions}>
+        <div className={styles.taskActions}>
           <button
             className={styles.iconBtn}
-            onClick={() => onEditStart(chore.id)}
-            aria-label={`Edit ${chore.name}`}
+            onClick={() => onEditStart(task.id)}
+            aria-label={`Edit ${task.name}`}
             title="Edit"
           >✏️</button>
           <button
             className={`${styles.iconBtn} ${styles.deleteBtn}`}
-            onClick={() => onDelete(chore.id)}
-            aria-label={`Delete ${chore.name}`}
+            onClick={() => onDelete(task.id)}
+            aria-label={`Delete ${task.name}`}
             title="Delete"
           >🗑️</button>
         </div>
@@ -373,11 +373,11 @@ function SortableChoreRow({
   );
 }
 
-/* ── Add Chore Form ────────────────────────────────────────── */
-function AddChoreForm({ day, onCancel, onAdded }: {
+/* ── Add Task Form ────────────────────────────────────────── */
+function AddTaskForm({ day, onCancel, onAdded }: {
   day: string;
   onCancel: () => void;
-  onAdded: (chore: Chore) => void;
+  onAdded: (task: Task) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -388,15 +388,15 @@ function AddChoreForm({ day, onCancel, onAdded }: {
     fd.set("recurrence", day);
     setError(null);
     startTransition(async () => {
-      const result = await addChore(fd);
+      const result = await addTask(fd);
       if (result.error) { setError(result.error); return; }
-      // Build an optimistic chore object to return
-      const optimistic: Chore = {
+      // Build an optimistic task object to return
+      const optimistic: Task = {
         id: crypto.randomUUID(),
         household_id: "",
         name: (fd.get("name") as string).trim(),
         description: (fd.get("description") as string | null)?.trim() || null,
-        recurrence: day as Chore["recurrence"],
+        recurrence: day as Task["recurrence"],
         display_order: 999,
         is_active: true,
         created_at: new Date().toISOString(),
@@ -410,7 +410,7 @@ function AddChoreForm({ day, onCancel, onAdded }: {
       <input
         name="name"
         className={`form-input ${styles.inlineInput}`}
-        placeholder="Chore name"
+        placeholder="Task name"
         required
         autoFocus
         autoComplete="off"
@@ -434,11 +434,11 @@ function AddChoreForm({ day, onCancel, onAdded }: {
   );
 }
 
-/* ── Edit Chore Form ───────────────────────────────────────── */
-function EditChoreForm({ chore, onCancel, onSaved }: {
-  chore: Chore;
+/* ── Edit Task Form ───────────────────────────────────────── */
+function EditTaskForm({ task, onCancel, onSaved }: {
+  task: Task;
   onCancel: () => void;
-  onSaved: (updated: Chore) => void;
+  onSaved: (updated: Task) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -448,10 +448,10 @@ function EditChoreForm({ chore, onCancel, onSaved }: {
     const fd = new FormData(e.currentTarget);
     setError(null);
     startTransition(async () => {
-      const result = await updateChore(chore.id, fd);
+      const result = await updateTask(task.id, fd);
       if (result.error) { setError(result.error); return; }
       onSaved({
-        ...chore,
+        ...task,
         name: (fd.get("name") as string).trim(),
         description: (fd.get("description") as string | null)?.trim() || null,
       });
@@ -463,7 +463,7 @@ function EditChoreForm({ chore, onCancel, onSaved }: {
       <input
         name="name"
         className={`form-input ${styles.inlineInput}`}
-        defaultValue={chore.name}
+        defaultValue={task.name}
         required
         autoFocus
         autoComplete="off"
@@ -471,7 +471,7 @@ function EditChoreForm({ chore, onCancel, onSaved }: {
       <input
         name="description"
         className={`form-input ${styles.inlineInput}`}
-        defaultValue={chore.description ?? ""}
+        defaultValue={task.description ?? ""}
         placeholder="Description (optional)"
         autoComplete="off"
       />

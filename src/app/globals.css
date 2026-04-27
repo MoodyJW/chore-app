@@ -361,9 +361,9 @@ body {
 }
 
 /* =========================================================
-   CHORE CHECKBOX / TOGGLE
+   TASK CHECKBOX / TOGGLE
    ========================================================= */
-.chore-item {
+.task-item {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -373,11 +373,11 @@ body {
   transition: background var(--transition-fast);
 }
 
-.chore-item:hover {
+.task-item:hover {
   background: var(--glass-bg-hover);
 }
 
-.chore-checkbox {
+.task-checkbox {
   width: 22px;
   height: 22px;
   min-width: 22px;
@@ -391,27 +391,27 @@ body {
   cursor: pointer;
 }
 
-.chore-checkbox.checked {
+.task-checkbox.checked {
   background: var(--color-primary);
   border-color: var(--color-primary);
   animation: scaleIn 150ms ease;
 }
 
-.chore-checkbox.checked::after {
+.task-checkbox.checked::after {
   content: '✓';
   color: white;
   font-size: 13px;
   font-weight: 700;
 }
 
-.chore-name {
+.task-name {
   flex: 1;
   font-size: var(--font-size-base);
   color: var(--text-primary);
   transition: color var(--transition-fast);
 }
 
-.chore-name.completed {
+.task-name.completed {
   text-decoration: line-through;
   color: var(--text-muted);
 }

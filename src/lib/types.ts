@@ -20,7 +20,7 @@ export interface Household {
   created_at: string;
 }
 
-export interface Chore {
+export interface Task {
   id: string;
   household_id: string;
   name: string;
@@ -39,9 +39,9 @@ export interface Week {
   created_at: string;
 }
 
-export interface ChoreCompletion {
+export interface TaskCompletion {
   id: string;
-  chore_id: string;
+  task_id: string;
   week_id: string;
   day_of_week: RecurrenceDay;
   completed_at: string;

@@ -4,13 +4,13 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "ChoreApp — Household Chore Tracker",
-  description: "Keep your household on track with shared chore lists, streaks, and weekly planning.",
+  title: "TaskApp — Household Task Tracker",
+  description: "Keep your household on track with shared task lists, streaks, and weekly planning.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ChoreApp",
+    title: "TaskApp",
   },
   other: {
     "mobile-web-app-capable": "yes",

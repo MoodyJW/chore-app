@@ -117,8 +117,8 @@
   border-bottom-color: var(--color-primary);
 }
 
-/* Chore list */
-.choreList {
+/* Task list */
+.taskList {
   list-style: none;
   padding: var(--space-2) var(--space-3);
   display: flex;
@@ -126,7 +126,7 @@
   gap: 2px;
 }
 
-.choreRow {
+.taskRow {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -135,11 +135,11 @@
   transition: background var(--transition-fast);
 }
 
-.choreRow:hover {
+.taskRow:hover {
   background: var(--glass-bg-hover);
 }
 
-.choreIcon {
+.taskIcon {
   color: var(--text-muted);
   font-size: 1rem;
   flex-shrink: 0;
@@ -174,7 +174,7 @@
   position: relative;
 }
 
-.choreText {
+.taskText {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -182,18 +182,18 @@
   min-width: 0;
 }
 
-.choreName {
+.taskName {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.choreDesc {
+.taskDesc {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
-.choreActions {
+.taskActions {
   display: flex;
   gap: var(--space-1);
   flex-shrink: 0;
@@ -201,7 +201,7 @@
   transition: opacity var(--transition-fast);
 }
 
-.choreRow:hover .choreActions {
+.taskRow:hover .taskActions {
   opacity: 1;
 }
 

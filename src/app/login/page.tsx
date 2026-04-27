@@ -35,7 +35,7 @@ export default function LoginPage() {
       <div className={styles.orb2} aria-hidden="true" />
 
       <div className={styles.topBar}>
-        <div className={styles.logo}>🏠 ChoreApp</div>
+        <div className={styles.logo}>🏠 TaskApp</div>
         <ThemeToggle />
       </div>
 

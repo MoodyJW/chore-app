@@ -109,7 +109,7 @@ export function PushToggle() {
       <div className={styles.info}>
         <span className={styles.title}>Daily Reminders</span>
         <span className={styles.desc}>
-          Get a push notification if chores are incomplete by 7 PM.
+          Get a push notification if tasks are incomplete by 7 PM.
         </span>
       </div>
       <div className={styles.actions}>

@@ -33,9 +33,9 @@ export async function ensureCurrentWeek() {
   return created;
 }
 
-/** Toggle a chore completion on/off for a specific day in a week. */
+/** Toggle a task completion on/off for a specific day in a week. */
 export async function toggleCompletion(
-  choreId: string,
+  taskId: string,
   weekId: string,
   dayOfWeek: string,
   currentlyCompleted: boolean
@@ -46,15 +46,15 @@ export async function toggleCompletion(
 
   if (currentlyCompleted) {
     await supabase
-      .from("chore_completions")
+      .from("task_completions")
       .delete()
-      .eq("chore_id", choreId)
+      .eq("task_id", taskId)
       .eq("week_id", weekId)
       .eq("day_of_week", dayOfWeek);
   } else {
     await supabase
-      .from("chore_completions")
-      .insert({ chore_id: choreId, week_id: weekId, day_of_week: dayOfWeek });
+      .from("task_completions")
+      .insert({ task_id: taskId, week_id: weekId, day_of_week: dayOfWeek });
   }
 
   await recalculateStreak(user.id, weekId, dayOfWeek);
@@ -98,22 +98,22 @@ async function recalculateStreak(
   // Only count the streak for today's day
   if (dayOfWeek !== todayName) return;
 
-  const { data: chores } = await supabase
-    .from("chores")
+  const { data: tasks } = await supabase
+    .from("tasks")
     .select("id")
     .eq("household_id", householdId)
     .eq("is_active", true)
     .in("recurrence", ["daily", dayOfWeek]);
 
   const { data: completions } = await supabase
-    .from("chore_completions")
-    .select("chore_id")
+    .from("task_completions")
+    .select("task_id")
     .eq("week_id", weekId)
     .eq("day_of_week", dayOfWeek);
 
   const allDone =
-    (chores?.length ?? 0) > 0 &&
-    (completions?.length ?? 0) >= (chores?.length ?? 0);
+    (tasks?.length ?? 0) > 0 &&
+    (completions?.length ?? 0) >= (tasks?.length ?? 0);
 
   const todayStr = toDateString(localDateObj);
   const yesterdayObj = new Date(localDateObj);
@@ -129,7 +129,7 @@ async function recalculateStreak(
   if (!streak) return;
 
   if (!allDone) {
-    // Revert streak if they unchecked a chore today
+    // Revert streak if they unchecked a task today
     if (streak.last_streak_date === todayStr) {
       const newStreak = Math.max(0, streak.current_streak - 1);
       await supabase

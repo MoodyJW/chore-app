@@ -15,7 +15,7 @@ const DEFAULT_DAY_LABELS = [
   { day_of_week: "saturday", label: "General & Office" },
 ];
 
-const DEFAULT_CHORES = [
+const DEFAULT_TASKS = [
   // Daily
   { name: "Wipe kitchen counters & sink", recurrence: "daily", display_order: 0 },
   { name: "Wipe down stove top", recurrence: "daily", display_order: 1 },
@@ -76,21 +76,21 @@ const DEFAULT_CHORES = [
 
 // ── Actions ─────────────────────────────────────────────────
 
-export async function loadDefaultChores() {
+export async function loadDefaultTasks() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  // Delete all existing chores for this household to prevent duplicates
-  await supabase.from("chores").delete().eq("household_id", user.id);
+  // Delete all existing tasks for this household to prevent duplicates
+  await supabase.from("tasks").delete().eq("household_id", user.id);
 
-  // Insert default chores
-  const choresWithHousehold = DEFAULT_CHORES.map((c) => ({
+  // Insert default tasks
+  const tasksWithHousehold = DEFAULT_TASKS.map((c) => ({
     ...c,
     household_id: user.id,
   }));
 
-  const { error } = await supabase.from("chores").insert(choresWithHousehold);
+  const { error } = await supabase.from("tasks").insert(tasksWithHousehold);
   if (error) throw new Error(error.message);
 
   // Upsert day labels (has a proper unique constraint)
@@ -104,11 +104,11 @@ export async function loadDefaultChores() {
     ignoreDuplicates: false,
   });
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
 }
 
-export async function addChore(formData: FormData) {
+export async function addTask(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -121,7 +121,7 @@ export async function addChore(formData: FormData) {
 
   // Get max display_order for this day
   const { data: existing } = await supabase
-    .from("chores")
+    .from("tasks")
     .select("display_order")
     .eq("household_id", user.id)
     .eq("recurrence", recurrence)
@@ -130,7 +130,7 @@ export async function addChore(formData: FormData) {
 
   const nextOrder = (existing?.[0]?.display_order ?? -1) + 1;
 
-  const { error } = await supabase.from("chores").insert({
+  const { error } = await supabase.from("tasks").insert({
     household_id: user.id,
     name,
     description,
@@ -140,27 +140,27 @@ export async function addChore(formData: FormData) {
 
   if (error) return { error: error.message };
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
   return { error: null };
 }
 
-export async function deleteChore(choreId: string) {
+export async function deleteTask(taskId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
   await supabase
-    .from("chores")
+    .from("tasks")
     .update({ is_active: false })
-    .eq("id", choreId)
+    .eq("id", taskId)
     .eq("household_id", user.id);
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
 }
 
-export async function updateChore(choreId: string, formData: FormData) {
+export async function updateTask(taskId: string, formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -171,19 +171,19 @@ export async function updateChore(choreId: string, formData: FormData) {
   if (!name) return { error: "Name is required" };
 
   const { error } = await supabase
-    .from("chores")
+    .from("tasks")
     .update({ name, description })
-    .eq("id", choreId)
+    .eq("id", taskId)
     .eq("household_id", user.id);
 
   if (error) return { error: error.message };
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
   return { error: null };
 }
 
-export async function reorderChores(day: string, orderedIds: string[]) {
+export async function reorderTasks(day: string, orderedIds: string[]) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
@@ -191,7 +191,7 @@ export async function reorderChores(day: string, orderedIds: string[]) {
   await Promise.all(
     orderedIds.map((id, idx) =>
       supabase
-        .from("chores")
+        .from("tasks")
         .update({ display_order: idx })
         .eq("id", id)
         .eq("household_id", user.id)
@@ -199,7 +199,7 @@ export async function reorderChores(day: string, orderedIds: string[]) {
     )
   );
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
 }
 
@@ -213,6 +213,6 @@ export async function upsertDayLabel(dayOfWeek: string, label: string) {
     { onConflict: "household_id,day_of_week" }
   );
 
-  revalidatePath("/chores");
+  revalidatePath("/tasks");
   revalidatePath("/dashboard");
 }

@@ -91,37 +91,37 @@ export async function GET(request: Request) {
     const weekMap = new Map(weeks.map(w => [w.household_id, w.id]));
     const weekIds = weeks.map(w => w.id);
 
-    // 5. Get chores for today or daily
-    const { data: chores } = await supabase
-      .from("chores")
+    // 5. Get tasks for today or daily
+    const { data: tasks } = await supabase
+      .from("tasks")
       .select("id, household_id")
       .eq("is_active", true)
       .in("household_id", hhIds)
       .in("recurrence", ["daily", todayName]);
 
-    if (!chores?.length) continue;
+    if (!tasks?.length) continue;
 
     // 6. Get completions for today
     const { data: completions } = await supabase
-      .from("chore_completions")
-      .select("chore_id, week_id")
+      .from("task_completions")
+      .select("task_id, week_id")
       .in("week_id", weekIds)
       .eq("day_of_week", todayName);
 
-    const completedMap = new Set(completions?.map(c => `${c.week_id}-${c.chore_id}`));
+    const completedMap = new Set(completions?.map(c => `${c.week_id}-${c.task_id}`));
 
-    // 7. Find households with pending chores in this timezone
-    for (const chore of chores) {
-      const weekId = weekMap.get(chore.household_id);
+    // 7. Find households with pending tasks in this timezone
+    for (const task of tasks) {
+      const weekId = weekMap.get(task.household_id);
       if (!weekId) continue;
-      if (!completedMap.has(`${weekId}-${chore.id}`)) {
-        householdsWithPending.add(chore.household_id);
+      if (!completedMap.has(`${weekId}-${task.id}`)) {
+        householdsWithPending.add(task.household_id);
       }
     }
   }
 
   if (householdsWithPending.size === 0) {
-    return NextResponse.json({ message: "All chores completed for all targeted households!" });
+    return NextResponse.json({ message: "All tasks completed for all targeted households!" });
   }
 
   // 8. Send notifications
@@ -140,8 +140,8 @@ export async function GET(request: Request) {
       };
       
       const payload = JSON.stringify({
-        title: "Daily Chores Reminder",
-        body: "You have incomplete chores for today. Time to get them done!",
+        title: "Daily Tasks Reminder",
+        body: "You have incomplete tasks for today. Time to get them done!",
         url: "/dashboard"
       });
 

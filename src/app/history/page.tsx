@@ -30,7 +30,7 @@ export default async function HistoryPage() {
   const weekIds = (weeks ?? []).map((w) => w.id);
   const { data: completions } = weekIds.length
     ? await supabase
-        .from("chore_completions")
+        .from("task_completions")
         .select("week_id")
         .in("week_id", weekIds)
     : { data: [] };
@@ -43,7 +43,7 @@ export default async function HistoryPage() {
 
   return (
     <div className={styles.shell}>
-      <NavBar householdName={household?.name ?? "ChoreApp"} />
+      <NavBar householdName={household?.name ?? "TaskApp"} />
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>History</h1>
@@ -79,7 +79,7 @@ export default async function HistoryPage() {
                   </div>
                   <div className={styles.weekStats}>
                     <span className={styles.statBadge}>
-                      ✅ {done} chore{done !== 1 ? "s" : ""} done
+                      ✅ {done} task{done !== 1 ? "s" : ""} done
                     </span>
                     <span className={styles.arrow} aria-hidden="true">›</span>
                   </div>

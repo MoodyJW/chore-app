@@ -9,7 +9,7 @@ import styles from "./NavBar.module.css";
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home",    icon: "🏠" },
   { href: "/history",   label: "History",  icon: "📖" },
-  { href: "/chores",    label: "Chores",   icon: "✏️" },
+  { href: "/tasks",    label: "Tasks",   icon: "✏️" },
   { href: "/settings",  label: "Settings", icon: "⚙️" },
 ];
 

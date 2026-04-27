@@ -11,19 +11,19 @@ export default async function DashboardPage() {
 
   const week = await ensureCurrentWeek();
 
-  const [{ data: household }, { data: streak }, { data: chores }, { data: completions }, { data: dayLabels }] =
+  const [{ data: household }, { data: streak }, { data: tasks }, { data: completions }, { data: dayLabels }] =
     await Promise.all([
       supabase.from("households").select("*").eq("id", user.id).single(),
       supabase.from("streaks").select("*").eq("household_id", user.id).single(),
       supabase
-        .from("chores")
+        .from("tasks")
         .select("*")
         .eq("household_id", user.id)
         .eq("is_active", true)
         .order("display_order", { ascending: true }),
       supabase
-        .from("chore_completions")
-        .select("chore_id, day_of_week")
+        .from("task_completions")
+        .select("task_id, day_of_week")
         .eq("week_id", week.id),
       supabase
         .from("day_labels")
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     ]);
 
   const completionSet = new Set(
-    (completions ?? []).map((c) => `${c.chore_id}-${c.day_of_week}`)
+    (completions ?? []).map((c) => `${c.task_id}-${c.day_of_week}`)
   );
 
   const labelMap = Object.fromEntries(
@@ -44,7 +44,7 @@ export default async function DashboardPage() {
       household={household}
       week={week}
       weekLabel={formatWeekRange(week.week_start, week.week_end)}
-      chores={chores ?? []}
+      tasks={tasks ?? []}
       initialCompletions={Array.from(completionSet)}
       streak={streak ?? { current_streak: 0, longest_streak: 0, last_streak_date: null }}
       dayLabels={labelMap}

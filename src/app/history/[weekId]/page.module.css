@@ -114,8 +114,8 @@
   color: var(--color-success);
 }
 
-/* Chore list (read-only) */
-.choreList {
+/* Task list (read-only) */
+.taskList {
   list-style: none;
   padding: 0 var(--space-3) var(--space-3);
   display: flex;
@@ -123,7 +123,7 @@
   gap: 2px;
 }
 
-.choreRow {
+.taskRow {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -146,23 +146,23 @@
   background: transparent;
 }
 
-.choreDone .checkbox {
+.taskDone .checkbox {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
 
-.choreName {
+.taskName {
   font-size: var(--font-size-base);
   font-weight: 500;
   color: var(--text-primary);
 }
 
-.choreDone .choreName {
+.taskDone .taskName {
   text-decoration: line-through;
   color: var(--text-muted);
 }
 
-/* Daily chore grid */
+/* Daily task grid */
 .dailyGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

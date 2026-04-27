@@ -1,16 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { ChoresClient } from "./ChoresClient";
+import { TasksClient } from "./TasksClient";
 
-export default async function ChoresPage() {
+export default async function TasksPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: chores }, { data: dayLabels }, { data: household }] =
+  const [{ data: tasks }, { data: dayLabels }, { data: household }] =
     await Promise.all([
       supabase
-        .from("chores")
+        .from("tasks")
         .select("*")
         .eq("household_id", user.id)
         .eq("is_active", true)
@@ -27,10 +27,10 @@ export default async function ChoresPage() {
     ]);
 
   return (
-    <ChoresClient
-      chores={chores ?? []}
+    <TasksClient
+      tasks={tasks ?? []}
       dayLabels={dayLabels ?? []}
-      householdName={household?.name ?? "ChoreApp"}
+      householdName={household?.name ?? "TaskApp"}
     />
   );
 }

@@ -60,7 +60,7 @@ export function SettingsClient({ household, streak, email }: Props) {
 
   return (
     <div className={styles.shell}>
-      <NavBar householdName={household?.name ?? "ChoreApp"} />
+      <NavBar householdName={household?.name ?? "TaskApp"} />
       <main className={styles.main}>
         <div className={styles.pageHeader}>
           <h1 className={styles.pageTitle}>Settings</h1>

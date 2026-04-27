@@ -1,8 +1,8 @@
 self.addEventListener("push", function (event) {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "ChoreApp Reminder";
+  const title = data.title || "TaskApp Reminder";
   const options = {
-    body: data.body || "You have incomplete chores today.",
+    body: data.body || "You have incomplete tasks today.",
     icon: "/icons/icon-192x192.png",
     badge: "/icons/icon-72x72.png",
     vibrate: [100, 50, 100],
