@@ -22,8 +22,6 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SECRET_KEY!
   );
 
-  const now = new Date();
-
   // 1. Fetch push subscriptions
   const { data: subs, error: subsError } = await supabase
     .from("push_subscriptions")
@@ -35,46 +33,90 @@ export async function GET(request: Request) {
 
   const subscribedHouseholdIds = Array.from(new Set(subs.map(s => s.household_id)));
 
-  // 4. Get active week for these households
-  const weekStart = toDateString(getWeekStart(now));
-  const { data: weeks } = await supabase
-    .from("weeks")
-    .select("id, household_id")
-    .eq("week_start", weekStart)
-    .in("household_id", subscribedHouseholdIds);
-  
-  if (!weeks?.length) return NextResponse.json({ message: "No active weeks for target households" });
+  // 2. Fetch households to get timezones
+  const { data: households } = await supabase
+    .from("households")
+    .select("id, timezone")
+    .in("id", subscribedHouseholdIds);
+    
+  if (!households?.length) {
+    return NextResponse.json({ message: "No valid households found for subscriptions" });
+  }
 
-  const weekMap = new Map(weeks.map(w => [w.household_id, w.id]));
-  const weekIds = weeks.map(w => w.id);
+  const householdTimezones = new Map(households.map(h => [h.id, h.timezone || "America/Los_Angeles"]));
 
-  // 5. Get chores for today or daily
-  const todayName = DAY_NAMES[now.getDay()]; // Note: uses UTC day, might be edge case if UTC day != local day, but close enough for 7PM
-  const { data: chores } = await supabase
-    .from("chores")
-    .select("id, household_id")
-    .eq("is_active", true)
-    .in("household_id", subscribedHouseholdIds)
-    .in("recurrence", ["daily", todayName]);
+  // Group households by timezone
+  const tzGroups = new Map<string, string[]>();
+  for (const [hhId, tz] of householdTimezones.entries()) {
+    if (!tzGroups.has(tz)) tzGroups.set(tz, []);
+    tzGroups.get(tz)!.push(hhId);
+  }
 
-  if (!chores?.length) return NextResponse.json({ message: "No chores to remind about today" });
-
-  // 6. Get completions for today
-  const { data: completions } = await supabase
-    .from("chore_completions")
-    .select("chore_id, week_id")
-    .in("week_id", weekIds)
-    .eq("day_of_week", todayName);
-
-  const completedMap = new Set(completions?.map(c => `${c.week_id}-${c.chore_id}`));
-
-  // 7. Find households with pending chores
+  const nowUTC = new Date();
   const householdsWithPending = new Set<string>();
-  for (const chore of chores) {
-    const weekId = weekMap.get(chore.household_id);
-    if (!weekId) continue;
-    if (!completedMap.has(`${weekId}-${chore.id}`)) {
-      householdsWithPending.add(chore.household_id);
+
+  // Process each timezone group separately
+  for (const [tz, hhIds] of tzGroups.entries()) {
+    // 3. Determine local day and week start for this timezone
+    let localDateString;
+    try {
+      localDateString = new Intl.DateTimeFormat("en-US", { 
+        timeZone: tz, 
+        year: 'numeric', month: 'numeric', day: 'numeric' 
+      }).format(nowUTC);
+    } catch (e) {
+      console.warn(`Invalid timezone: ${tz}, falling back to America/Los_Angeles`);
+      localDateString = new Intl.DateTimeFormat("en-US", { 
+        timeZone: "America/Los_Angeles", 
+        year: 'numeric', month: 'numeric', day: 'numeric' 
+      }).format(nowUTC);
+    }
+    
+    // Parse as local midnight (which becomes UTC midnight in Vercel environment)
+    const localDateObj = new Date(localDateString + " 00:00:00");
+    const todayName = DAY_NAMES[localDateObj.getDay()];
+    
+    // Get the week start for this local date
+    const weekStart = toDateString(getWeekStart(localDateObj));
+
+    // 4. Get active week for these households
+    const { data: weeks } = await supabase
+      .from("weeks")
+      .select("id, household_id")
+      .eq("week_start", weekStart)
+      .in("household_id", hhIds);
+    
+    if (!weeks?.length) continue;
+
+    const weekMap = new Map(weeks.map(w => [w.household_id, w.id]));
+    const weekIds = weeks.map(w => w.id);
+
+    // 5. Get chores for today or daily
+    const { data: chores } = await supabase
+      .from("chores")
+      .select("id, household_id")
+      .eq("is_active", true)
+      .in("household_id", hhIds)
+      .in("recurrence", ["daily", todayName]);
+
+    if (!chores?.length) continue;
+
+    // 6. Get completions for today
+    const { data: completions } = await supabase
+      .from("chore_completions")
+      .select("chore_id, week_id")
+      .in("week_id", weekIds)
+      .eq("day_of_week", todayName);
+
+    const completedMap = new Set(completions?.map(c => `${c.week_id}-${c.chore_id}`));
+
+    // 7. Find households with pending chores in this timezone
+    for (const chore of chores) {
+      const weekId = weekMap.get(chore.household_id);
+      if (!weekId) continue;
+      if (!completedMap.has(`${weekId}-${chore.id}`)) {
+        householdsWithPending.add(chore.household_id);
+      }
     }
   }
 

@@ -26,6 +26,12 @@
   flex-wrap: wrap;
 }
 
+.headerActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 .pageTitle {
   font-size: var(--font-size-2xl);
   font-weight: 800;
@@ -137,6 +143,35 @@
   color: var(--text-muted);
   font-size: 1rem;
   flex-shrink: 0;
+}
+
+.gripBtn {
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+  line-height: 1;
+  letter-spacing: -3px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.gripBtn:active {
+  cursor: grabbing;
+  color: var(--color-primary);
+}
+
+.dragging {
+  opacity: 0.85;
+  background: var(--glass-bg-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  z-index: 1;
+  position: relative;
 }
 
 .choreText {

@@ -1,11 +1,20 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
+import {
+  DndContext, closestCenter, PointerSensor, TouchSensor,
+  KeyboardSensor, useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy,
+  sortableKeyboardCoordinates, arrayMove, useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { NavBar } from "@/components/NavBar";
 import { DAY_NAMES, DAY_FULL } from "@/lib/week-utils";
 import {
   addChore, deleteChore, updateChore,
-  upsertDayLabel, loadDefaultChores,
+  upsertDayLabel, loadDefaultChores, reorderChores,
 } from "./actions";
 import type { Chore } from "@/lib/types";
 import styles from "./ChoresClient.module.css";
@@ -27,6 +36,7 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
   );
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [reorderMode, setReorderMode] = useState(false);
   const [loadingDefaults, startDefaultsTransition] = useTransition();
   const [, startTransition] = useTransition();
   const [showConfirm, setShowConfirm] = useState(false);
@@ -55,6 +65,28 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
     startTransition(async () => { await deleteChore(choreId); });
   }
 
+  function handleReorder(day: string, orderedIds: string[]) {
+    setChores((prev) => {
+      const others = prev.filter((c) => c.recurrence !== day);
+      const dayMap = new Map(
+        prev.filter((c) => c.recurrence === day).map((c) => [c.id, c])
+      );
+      const reordered = orderedIds.map((id, idx) => ({
+        ...dayMap.get(id)!,
+        display_order: idx,
+      }));
+      return [...others, ...reordered];
+    });
+    startTransition(async () => { await reorderChores(day, orderedIds); });
+  }
+
+  function toggleReorderMode() {
+    setReorderMode((v) => !v);
+    setAddingTo(null);
+    setEditingId(null);
+    setShowConfirm(false);
+  }
+
   return (
     <div className={styles.shell}>
       <NavBar householdName={householdName} />
@@ -65,21 +97,34 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
           <div>
             <h1 className={styles.pageTitle}>Manage Chores</h1>
             <p className={styles.pageSubtitle}>
-              Add, edit, or remove chores for each day.
+              {reorderMode
+                ? "Drag chores to reorder within each day."
+                : "Add, edit, or remove chores for each day."}
             </p>
           </div>
-          <button
-            id="btn-load-defaults"
-            className="btn btn-ghost btn-sm"
-            onClick={() => setShowConfirm(true)}
-            disabled={loadingDefaults}
-          >
-            {loadingDefaults ? <span className="spinner" /> : "✨ Load Defaults"}
-          </button>
+          <div className={styles.headerActions}>
+            <button
+              className={`btn btn-sm ${reorderMode ? "btn-primary" : "btn-ghost"}`}
+              onClick={toggleReorderMode}
+              aria-pressed={reorderMode}
+            >
+              {reorderMode ? "✓ Done" : "↕ Reorder"}
+            </button>
+            {!reorderMode && (
+              <button
+                id="btn-load-defaults"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setShowConfirm(true)}
+                disabled={loadingDefaults}
+              >
+                {loadingDefaults ? <span className="spinner" /> : "✨ Load Defaults"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Confirm dialog */}
-        {showConfirm && (
+        {showConfirm && !reorderMode && (
           <div className={`glass ${styles.confirm}`}>
             <p>Load a default set of chores organized by room?</p>
             <p className={styles.confirmNote}>Existing chores will not be removed.</p>
@@ -109,6 +154,7 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
               chores={dayChores}
               isAdding={addingTo === day}
               editingId={editingId}
+              reorderMode={reorderMode}
               onLabelBlur={(val) => handleLabelBlur(day, val)}
               onAddStart={() => { setAddingTo(day); setEditingId(null); }}
               onAddCancel={() => setAddingTo(null)}
@@ -123,6 +169,7 @@ export function ChoresClient({ chores: initialChores, dayLabels: initialLabels, 
                 setEditingId(null);
               }}
               onDelete={handleDelete}
+              onReorder={handleReorder}
             />
           );
         })}
@@ -141,6 +188,7 @@ interface DaySectionProps {
   chores: Chore[];
   isAdding: boolean;
   editingId: string | null;
+  reorderMode: boolean;
   onLabelBlur: (val: string) => void;
   onAddStart: () => void;
   onAddCancel: () => void;
@@ -149,14 +197,55 @@ interface DaySectionProps {
   onEditCancel: () => void;
   onEdited: (chore: Chore) => void;
   onDelete: (id: string) => void;
+  onReorder: (day: string, orderedIds: string[]) => void;
 }
 
 function DaySection({
-  day, displayName, label, chores, isAdding, editingId,
+  day, displayName, label, chores, isAdding, editingId, reorderMode,
   onLabelBlur, onAddStart, onAddCancel, onAdded,
-  onEditStart, onEditCancel, onEdited, onDelete,
+  onEditStart, onEditCancel, onEdited, onDelete, onReorder,
 }: DaySectionProps) {
   const labelRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 120, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIdx = chores.findIndex((c) => c.id === active.id);
+    const newIdx = chores.findIndex((c) => c.id === over.id);
+    if (oldIdx < 0 || newIdx < 0) return;
+    const next = arrayMove(chores, oldIdx, newIdx);
+    onReorder(day, next.map((c) => c.id));
+  }
+
+  const renderedList = chores.length > 0 && (
+    <ul className={styles.choreList}>
+      {chores.map((chore) =>
+        editingId === chore.id && !reorderMode ? (
+          <li key={chore.id} className={styles.choreRow}>
+            <EditChoreForm
+              chore={chore}
+              onCancel={onEditCancel}
+              onSaved={onEdited}
+            />
+          </li>
+        ) : (
+          <SortableChoreRow
+            key={chore.id}
+            chore={chore}
+            reorderMode={reorderMode}
+            onEditStart={onEditStart}
+            onDelete={onDelete}
+          />
+        )
+      )}
+    </ul>
+  );
 
   return (
     <div className={`glass ${styles.daySection}`}>
@@ -169,64 +258,46 @@ function DaySection({
             className={styles.labelInput}
             defaultValue={label}
             placeholder="Add a subtitle (e.g. Bathrooms)"
+            readOnly={reorderMode}
             onBlur={(e) => onLabelBlur(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && labelRef.current?.blur()}
             aria-label={`${displayName} day subtitle`}
           />
         </div>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={onAddStart}
-          id={`btn-add-${day}`}
-          aria-label={`Add chore to ${displayName}`}
-        >
-          + Add
-        </button>
+        {!reorderMode && (
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={onAddStart}
+            id={`btn-add-${day}`}
+            aria-label={`Add chore to ${displayName}`}
+          >
+            + Add
+          </button>
+        )}
       </div>
 
       {/* Chore list */}
       {chores.length > 0 && (
-        <ul className={styles.choreList}>
-          {chores.map((chore) =>
-            editingId === chore.id ? (
-              <li key={chore.id} className={styles.choreRow}>
-                <EditChoreForm
-                  chore={chore}
-                  onCancel={onEditCancel}
-                  onSaved={onEdited}
-                />
-              </li>
-            ) : (
-              <li key={chore.id} className={styles.choreRow}>
-                <span className={styles.choreIcon}>☐</span>
-                <div className={styles.choreText}>
-                  <span className={styles.choreName}>{chore.name}</span>
-                  {chore.description && (
-                    <span className={styles.choreDesc}>{chore.description}</span>
-                  )}
-                </div>
-                <div className={styles.choreActions}>
-                  <button
-                    className={styles.iconBtn}
-                    onClick={() => onEditStart(chore.id)}
-                    aria-label={`Edit ${chore.name}`}
-                    title="Edit"
-                  >✏️</button>
-                  <button
-                    className={`${styles.iconBtn} ${styles.deleteBtn}`}
-                    onClick={() => onDelete(chore.id)}
-                    aria-label={`Delete ${chore.name}`}
-                    title="Delete"
-                  >🗑️</button>
-                </div>
-              </li>
-            )
-          )}
-        </ul>
+        reorderMode ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={chores.map((c) => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {renderedList}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          renderedList
+        )
       )}
 
       {/* Add chore inline form */}
-      {isAdding && (
+      {isAdding && !reorderMode && (
         <AddChoreForm
           day={day}
           onCancel={onAddCancel}
@@ -238,6 +309,67 @@ function DaySection({
         <p className={styles.emptyDay}>No chores yet for this day.</p>
       )}
     </div>
+  );
+}
+
+/* ── Sortable Chore Row ────────────────────────────────────── */
+function SortableChoreRow({
+  chore, reorderMode, onEditStart, onDelete,
+}: {
+  chore: Chore;
+  reorderMode: boolean;
+  onEditStart: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: chore.id, disabled: !reorderMode });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`${styles.choreRow} ${isDragging ? styles.dragging : ""}`}
+    >
+      {reorderMode ? (
+        <button
+          type="button"
+          className={styles.gripBtn}
+          {...attributes}
+          {...listeners}
+          aria-label={`Reorder ${chore.name}`}
+          title="Drag to reorder"
+        >⋮⋮</button>
+      ) : (
+        <span className={styles.choreIcon}>☐</span>
+      )}
+      <div className={styles.choreText}>
+        <span className={styles.choreName}>{chore.name}</span>
+        {chore.description && (
+          <span className={styles.choreDesc}>{chore.description}</span>
+        )}
+      </div>
+      {!reorderMode && (
+        <div className={styles.choreActions}>
+          <button
+            className={styles.iconBtn}
+            onClick={() => onEditStart(chore.id)}
+            aria-label={`Edit ${chore.name}`}
+            title="Edit"
+          >✏️</button>
+          <button
+            className={`${styles.iconBtn} ${styles.deleteBtn}`}
+            onClick={() => onDelete(chore.id)}
+            aria-label={`Delete ${chore.name}`}
+            title="Delete"
+          >🗑️</button>
+        </div>
+      )}
+    </li>
   );
 }
 

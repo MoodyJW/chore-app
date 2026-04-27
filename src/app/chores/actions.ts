@@ -183,6 +183,26 @@ export async function updateChore(choreId: string, formData: FormData) {
   return { error: null };
 }
 
+export async function reorderChores(day: string, orderedIds: string[]) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  await Promise.all(
+    orderedIds.map((id, idx) =>
+      supabase
+        .from("chores")
+        .update({ display_order: idx })
+        .eq("id", id)
+        .eq("household_id", user.id)
+        .eq("recurrence", day)
+    )
+  );
+
+  revalidatePath("/chores");
+  revalidatePath("/dashboard");
+}
+
 export async function upsertDayLabel(dayOfWeek: string, label: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

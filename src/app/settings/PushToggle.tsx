@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { savePushSubscription } from "./push-actions";
 import styles from "./PushToggle.module.css";
 
@@ -20,7 +20,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export function PushToggle() {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [loading, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export function PushToggle() {
 
   async function checkSubscription() {
     try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) return; // No SW registered (likely in dev mode)
+      
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
@@ -42,7 +45,14 @@ export function PushToggle() {
 
   async function subscribe() {
     setError(null);
+    setLoading(true);
     try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        setError("Service worker is not registered. (Push is disabled in development)");
+        return;
+      }
+
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setError("Notification permission denied");
@@ -55,35 +65,45 @@ export function PushToggle() {
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
       });
 
-      startTransition(async () => {
-        const result = await savePushSubscription(JSON.stringify(subscription));
-        if (result.success) {
-          setIsSubscribed(true);
-        } else {
-          setError(result.error || "Failed to save subscription on server");
-          // Revert the browser subscription if server save fails
-          await subscription.unsubscribe();
-        }
-      });
+      const result = await savePushSubscription(JSON.stringify(subscription));
+      if (result.success) {
+        setIsSubscribed(true);
+      } else {
+        setError(result.error || "Failed to save subscription on server");
+        await subscription.unsubscribe();
+      }
     } catch (err: any) {
       console.error("Error subscribing to push:", err);
       setError(err.message || "Failed to subscribe");
+    } finally {
+      setLoading(false);
     }
   }
 
   async function unsubscribe() {
     setError(null);
+    setLoading(true);
     try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) {
+        setIsSubscribed(false);
+        return;
+      }
+
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();
         setIsSubscribed(false);
         // Note: In a production app, we should also delete the subscription from the DB
+      } else {
+        setIsSubscribed(false);
       }
     } catch (err: any) {
       console.error("Error unsubscribing:", err);
       setError(err.message || "Failed to unsubscribe");
+    } finally {
+      setLoading(false);
     }
   }
 

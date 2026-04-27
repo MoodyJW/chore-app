@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import NextTopLoader from 'nextjs-toploader';
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body>
+        <NextTopLoader color="#7c6af7" showSpinner={false} shadow="0 0 10px #7c6af7,0 0 5px #7c6af7" />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

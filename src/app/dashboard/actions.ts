@@ -61,17 +61,42 @@ export async function toggleCompletion(
   revalidatePath("/dashboard");
 }
 
-/** After any toggle, check if today is fully done and update the streak. */
 async function recalculateStreak(
   householdId: string,
   weekId: string,
   dayOfWeek: string
 ) {
-  // Only count the streak for today's day
-  const todayName = DAY_NAMES[new Date().getDay()];
-  if (dayOfWeek !== todayName) return;
-
   const supabase = await createClient();
+
+  const { data: household } = await supabase
+    .from("households")
+    .select("timezone")
+    .eq("id", householdId)
+    .single();
+
+  const tz = household?.timezone || "America/Los_Angeles";
+  
+  const nowUTC = new Date();
+  
+  let localDateString;
+  try {
+    localDateString = new Intl.DateTimeFormat("en-US", { 
+      timeZone: tz, 
+      year: 'numeric', month: 'numeric', day: 'numeric' 
+    }).format(nowUTC);
+  } catch (e) {
+    console.warn(`Invalid timezone: ${tz}, falling back to America/Los_Angeles`);
+    localDateString = new Intl.DateTimeFormat("en-US", { 
+      timeZone: "America/Los_Angeles", 
+      year: 'numeric', month: 'numeric', day: 'numeric' 
+    }).format(nowUTC);
+  }
+  
+  const localDateObj = new Date(localDateString + " 00:00:00");
+  const todayName = DAY_NAMES[localDateObj.getDay()];
+
+  // Only count the streak for today's day
+  if (dayOfWeek !== todayName) return;
 
   const { data: chores } = await supabase
     .from("chores")
@@ -90,12 +115,10 @@ async function recalculateStreak(
     (chores?.length ?? 0) > 0 &&
     (completions?.length ?? 0) >= (chores?.length ?? 0);
 
-  if (!allDone) return;
-
-  const today = toDateString(new Date());
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = toDateString(yesterday);
+  const todayStr = toDateString(localDateObj);
+  const yesterdayObj = new Date(localDateObj);
+  yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+  const yesterdayStr = toDateString(yesterdayObj);
 
   const { data: streak } = await supabase
     .from("streaks")
@@ -103,7 +126,26 @@ async function recalculateStreak(
     .eq("household_id", householdId)
     .single();
 
-  if (!streak || streak.last_streak_date === today) return;
+  if (!streak) return;
+
+  if (!allDone) {
+    // Revert streak if they unchecked a chore today
+    if (streak.last_streak_date === todayStr) {
+      const newStreak = Math.max(0, streak.current_streak - 1);
+      await supabase
+        .from("streaks")
+        .update({
+          current_streak: newStreak,
+          last_streak_date: newStreak === 0 ? null : yesterdayStr,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("household_id", householdId);
+    }
+    return;
+  }
+
+  // If already logged today, do nothing
+  if (streak.last_streak_date === todayStr) return;
 
   const newStreak =
     streak.last_streak_date === yesterdayStr
@@ -115,7 +157,7 @@ async function recalculateStreak(
     .update({
       current_streak: newStreak,
       longest_streak: Math.max(newStreak, streak.longest_streak),
-      last_streak_date: today,
+      last_streak_date: todayStr,
       updated_at: new Date().toISOString(),
     })
     .eq("household_id", householdId);
