@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toggleCompletion } from "./actions";
 import { NavBar } from "@/components/NavBar";
-import { DAY_NAMES, DAY_FULL, getDayDate } from "@/lib/week-utils";
+import { DAY_NAMES, DAY_FULL, getDayDate, getEndOfDayDate } from "@/lib/week-utils";
 import type { Chore, Household, Streak, Week } from "@/lib/types";
 import styles from "./DashboardClient.module.css";
 
@@ -43,18 +43,33 @@ export function DashboardClient({
   const choresByDay = (day: string) =>
     chores.filter((c) => c.recurrence === day);
 
+  function getExpectedChoresForDay(day: string) {
+    const dayIndex = DAY_NAMES.indexOf(day as any);
+    const endOfDay = getEndOfDayDate(week.week_start, dayIndex);
+    const dayChores = [...dailyChores, ...choresByDay(day)];
+    
+    // Only expect chores that existed before the end of this day
+    return dayChores.filter(c => new Date(c.created_at) <= endOfDay);
+  }
+
+  function getExpectedSpecificChores(day: string, type: "daily" | "specific") {
+    const expected = getExpectedChoresForDay(day);
+    if (type === "daily") return expected.filter((c) => c.recurrence === "daily");
+    return expected.filter((c) => c.recurrence === day);
+  }
+
   function isCompleted(choreId: string, day: string) {
     return completions.has(`${choreId}-${day}`);
   }
 
   function allDoneForDay(day: string) {
-    const dayChores = [...dailyChores, ...choresByDay(day)];
+    const dayChores = getExpectedChoresForDay(day);
     if (dayChores.length === 0) return false;
     return dayChores.every((c) => isCompleted(c.id, day));
   }
 
   function progressForDay(day: string) {
-    const dayChores = [...dailyChores, ...choresByDay(day)];
+    const dayChores = getExpectedChoresForDay(day);
     const done = dayChores.filter((c) => isCompleted(c.id, day)).length;
     return { done, total: dayChores.length };
   }
@@ -80,7 +95,7 @@ export function DashboardClient({
 
     // Optimistic streak update for today
     if (day === todayName && !wasCompleted) {
-      const dayChores = [...dailyChores, ...choresByDay(day)];
+      const dayChores = getExpectedChoresForDay(day);
       const newCompletions = new Set(completions);
       newCompletions.add(key);
       const allDone = dayChores.every((c) =>
@@ -131,7 +146,7 @@ export function DashboardClient({
         </div>
 
         {/* Daily section */}
-        {dailyChores.length > 0 && (
+        {getExpectedSpecificChores(todayName, "daily").length > 0 && (
           <DaySection
             label="Daily"
             subtitle={dayLabels["daily"] || "Repeats every day"}
@@ -140,21 +155,21 @@ export function DashboardClient({
             isPast={false}
             isExpanded={expanded.has("daily")}
             onToggleExpand={() => toggleExpanded("daily")}
-            chores={dailyChores}
+            chores={getExpectedSpecificChores(todayName, "daily")}
             completions={completions}
             onToggle={(id) => handleToggle(id, todayName)}
             displayDay={todayName}
-            allDone={dailyChores.every((c) => isCompleted(c.id, todayName))}
+            allDone={getExpectedSpecificChores(todayName, "daily").every((c) => isCompleted(c.id, todayName))}
             progress={{
-              done: dailyChores.filter((c) => isCompleted(c.id, todayName)).length,
-              total: dailyChores.length,
+              done: getExpectedSpecificChores(todayName, "daily").filter((c) => isCompleted(c.id, todayName)).length,
+              total: getExpectedSpecificChores(todayName, "daily").length,
             }}
           />
         )}
 
         {/* One section per day of the week */}
         {DAY_NAMES.map((dayName, i) => {
-          const dayChores = choresByDay(dayName);
+          const dayChores = getExpectedSpecificChores(dayName, "specific");
           if (dayChores.length === 0) return null;
           const isToday = i === todayIndex;
           const isPast = i < todayIndex;

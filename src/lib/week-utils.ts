@@ -45,3 +45,10 @@ export function getDayDate(weekStart: string, dayIndex: number): string {
   d.setDate(d.getDate() + dayIndex);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+/** Get the absolute end of the day for a given day index (23:59:59.999) */
+export function getEndOfDayDate(weekStart: string, dayIndex: number): Date {
+  const d = new Date(weekStart + "T23:59:59.999");
+  d.setDate(d.getDate() + dayIndex);
+  return d;
+}
