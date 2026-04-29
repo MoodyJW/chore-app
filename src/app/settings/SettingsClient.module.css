@@ -16,10 +16,6 @@
   gap: var(--space-4);
 }
 
-.pageHeader {
-  padding: var(--space-4) 0 var(--space-2);
-}
-
 .pageTitle {
   font-size: var(--font-size-2xl);
   font-weight: 800;
@@ -135,4 +131,6 @@
   margin-top: var(--space-2);
 }
 
-.bottomPad { height: var(--space-4); }
+.bottomPad {
+  height: var(--space-4);
+}

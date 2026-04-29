@@ -9,8 +9,8 @@
   --color-primary-light:  #a89cf8;
   --color-primary-dark:   #5a48d4;
   --color-accent:         #f76a8a;
-  --color-success:        #5af7a0;
-  --color-warning:        #f7c85a;
+  --color-success:        #059669; /* Darker green for light mode contrast */
+  --color-warning:        #d97706; /* Darker amber for light mode contrast */
 
   /* Background */
   --bg-gradient-from:     #e8e4ff;
@@ -92,8 +92,8 @@
   --text-secondary:       #b8b0e0;
   --text-muted:           #7870a8;
 
-  --color-success:        #3cd67f;
-  --color-warning:        #e8b840;
+  --color-success:        #5af7a0; /* Bright green for dark mode */
+  --color-warning:        #f7c85a; /* Bright yellow/amber for dark mode */
 }
 
 /* =========================================================

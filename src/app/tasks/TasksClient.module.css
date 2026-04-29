@@ -22,7 +22,6 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4) 0 var(--space-2);
   flex-wrap: wrap;
 }
 
@@ -264,7 +263,8 @@
 /* Sticky reorder toolbar — floats above the bottom nav */
 .stickyToolbar {
   position: fixed;
-  bottom: 72px; /* above the bottom nav bar */
+  bottom: 72px;
+  /* above the bottom nav bar */
   left: 0;
   right: 0;
   display: flex;
