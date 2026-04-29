@@ -102,15 +102,8 @@ export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, hou
                 : "Add, edit, or remove tasks for each day."}
             </p>
           </div>
-          <div className={styles.headerActions}>
-            <button
-              className={`btn btn-sm ${reorderMode ? "btn-primary" : "btn-ghost"}`}
-              onClick={toggleReorderMode}
-              aria-pressed={reorderMode}
-            >
-              {reorderMode ? "✓ Done" : "↕ Reorder"}
-            </button>
-            {!reorderMode && (
+          {!reorderMode && (
+            <div className={styles.headerActions}>
               <button
                 id="btn-load-defaults"
                 className="btn btn-ghost btn-sm"
@@ -119,8 +112,8 @@ export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, hou
               >
                 {loadingDefaults ? <span className="spinner" /> : "✨ Load Defaults"}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Confirm dialog */}
@@ -176,6 +169,17 @@ export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, hou
 
         <div className={styles.bottomPad} />
       </main>
+
+      {/* Sticky reorder toolbar */}
+      <div className={styles.stickyToolbar}>
+        <button
+          className={`btn ${reorderMode ? "btn-primary" : "btn-ghost"} ${styles.stickyBtn}`}
+          onClick={toggleReorderMode}
+          aria-pressed={reorderMode}
+        >
+          {reorderMode ? "✓ Done Reordering" : "↕ Reorder Tasks"}
+        </button>
+      </div>
     </div>
   );
 }
