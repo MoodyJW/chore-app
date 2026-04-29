@@ -52,3 +52,10 @@ export function getEndOfDayDate(weekStart: string, dayIndex: number): Date {
   d.setDate(d.getDate() + dayIndex);
   return d;
 }
+
+/** Get the current month string formatted as YYYY-MM */
+export function getCurrentMonthString(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}

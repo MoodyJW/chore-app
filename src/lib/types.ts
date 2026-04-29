@@ -9,7 +9,8 @@ export type RecurrenceDay =
   | "wednesday"
   | "thursday"
   | "friday"
-  | "saturday";
+  | "saturday"
+  | "monthly";
 
 export interface Household {
   id: string;
@@ -44,6 +45,14 @@ export interface TaskCompletion {
   task_id: string;
   week_id: string;
   day_of_week: RecurrenceDay;
+  completed_at: string;
+}
+
+export interface MonthlyTaskCompletion {
+  id: string;
+  task_id: string;
+  household_id: string;
+  month_string: string;
   completed_at: string;
 }
 

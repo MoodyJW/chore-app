@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { toggleCompletion } from "./actions";
+import { toggleCompletion, toggleMonthlyCompletion } from "./actions";
 import { NavBar } from "@/components/NavBar";
 import { DAY_NAMES, DAY_FULL, getDayDate, getEndOfDayDate } from "@/lib/week-utils";
 import type { Task, Household, Streak, Week } from "@/lib/types";
@@ -15,6 +15,8 @@ interface Props {
   initialCompletions: string[];
   streak: Pick<Streak, "current_streak" | "longest_streak" | "last_streak_date">;
   dayLabels: Record<string, string>;
+  initialMonthlyCompletions: string[];
+  monthString: string;
 }
 
 export function DashboardClient({
@@ -25,6 +27,8 @@ export function DashboardClient({
   initialCompletions,
   streak: initialStreak,
   dayLabels,
+  initialMonthlyCompletions,
+  monthString,
 }: Props) {
   const todayIndex = new Date().getDay(); // 0=Sun
   const todayName = DAY_NAMES[todayIndex];
@@ -32,10 +36,13 @@ export function DashboardClient({
   const [completions, setCompletions] = useState<Set<string>>(
     new Set(initialCompletions)
   );
+  const [monthlyCompletions, setMonthlyCompletions] = useState<Set<string>>(
+    new Set(initialMonthlyCompletions)
+  );
   const [streak, setStreak] = useState(initialStreak);
   // Which day sections are expanded (today is expanded by default)
   const [expanded, setExpanded] = useState<Set<string>>(
-    new Set(["daily", todayName])
+    new Set(["monthly", "daily", todayName])
   );
   const [, startTransition] = useTransition();
 
@@ -127,6 +134,20 @@ export function DashboardClient({
     });
   }
 
+  function handleMonthlyToggle(taskId: string) {
+    const wasCompleted = monthlyCompletions.has(taskId);
+
+    setMonthlyCompletions((prev) => {
+      const next = new Set(prev);
+      wasCompleted ? next.delete(taskId) : next.add(taskId);
+      return next;
+    });
+
+    startTransition(async () => {
+      await toggleMonthlyCompletion(taskId, monthString, wasCompleted);
+    });
+  }
+
   return (
     <div className={styles.shell}>
       <NavBar householdName={household?.name ?? "TaskApp"} />
@@ -144,6 +165,28 @@ export function DashboardClient({
             </div>
           )}
         </div>
+
+        {/* Monthly section */}
+        {tasksByDay("monthly").length > 0 && (
+          <DaySection
+            label="Monthly"
+            subtitle={monthString}
+            dayKey="monthly"
+            isToday={false}
+            isPast={false}
+            isExpanded={expanded.has("monthly")}
+            onToggleExpand={() => toggleExpanded("monthly")}
+            tasks={tasksByDay("monthly")}
+            completions={new Set(Array.from(monthlyCompletions).map(id => `${id}-monthly`))}
+            onToggle={(id) => handleMonthlyToggle(id)}
+            displayDay="monthly"
+            allDone={tasksByDay("monthly").every((c) => monthlyCompletions.has(c.id))}
+            progress={{
+              done: tasksByDay("monthly").filter((c) => monthlyCompletions.has(c.id)).length,
+              total: tasksByDay("monthly").length,
+            }}
+          />
+        )}
 
         {/* Daily section */}
         {getExpectedSpecificTasks(todayName, "daily").length > 0 && (

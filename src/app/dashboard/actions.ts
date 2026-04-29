@@ -61,6 +61,32 @@ export async function toggleCompletion(
   revalidatePath("/dashboard");
 }
 
+/** Toggle a monthly task completion on/off for a specific month. */
+export async function toggleMonthlyCompletion(
+  taskId: string,
+  monthString: string,
+  currentlyCompleted: boolean
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  if (currentlyCompleted) {
+    await supabase
+      .from("monthly_task_completions")
+      .delete()
+      .eq("task_id", taskId)
+      .eq("month_string", monthString);
+  } else {
+    await supabase
+      .from("monthly_task_completions")
+      .insert({ task_id: taskId, household_id: user.id, month_string: monthString });
+  }
+
+  // Monthly tasks do not affect streaks, so no recalculateStreak needed.
+  revalidatePath("/dashboard");
+}
+
 async function recalculateStreak(
   householdId: string,
   weekId: string,

@@ -27,7 +27,7 @@ interface Props {
   householdName: string;
 }
 
-const ALL_DAYS = ["daily", ...DAY_NAMES] as const;
+const ALL_DAYS = ["monthly", "daily", ...DAY_NAMES] as const;
 
 export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, householdName }: Props) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
@@ -143,7 +143,7 @@ export function TasksClient({ tasks: initialTasks, dayLabels: initialLabels, hou
         {ALL_DAYS.map((day, i) => {
           const dayTasks = tasksByDay(day);
           const label = labels.get(day) ?? "";
-          const displayName = day === "daily" ? "Daily" : DAY_FULL[i - 1];
+          const displayName = day === "monthly" ? "Monthly" : day === "daily" ? "Daily" : DAY_FULL[i - 2];
 
           return (
             <DaySection
